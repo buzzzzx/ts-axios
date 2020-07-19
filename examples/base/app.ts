@@ -56,3 +56,45 @@ axios({
     bar: 'baz'
   }
 })
+
+// post data
+axios({
+  method: 'post',
+  url: '/base/post',
+  data: {
+    a: 1,
+    b: 2
+  }
+})
+
+// post data with headers
+axios({
+  method: 'post',
+  url: '/base/post',
+  headers: {
+    'content-type': 'application/json;charset=UTF-8'
+  },
+  data: {
+    a: 1,
+    b: 2
+  }
+})
+
+// post data with special data type
+const paramsString = 'q=URLUtils.searchParams&topic=api'
+const searchParams = new URLSearchParams(paramsString)
+
+axios({
+  method: 'post',
+  url: '/base/post',
+  data: searchParams
+})
+
+// Int32Array
+const arr = new Int32Array([21, 31])
+
+axios({
+  method: 'post',
+  url: '/base/buffer',
+  data: arr
+})
