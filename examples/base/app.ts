@@ -57,7 +57,7 @@ axios({
   }
 })
 
-// post data
+// post data and handle response
 axios({
   method: 'post',
   url: '/base/post',
@@ -66,6 +66,29 @@ axios({
     b: 2
   }
 })
+  .then(res => {
+    console.log(res)
+  })
+  .catch(err => {
+    console.log(err)
+  })
+
+// post data and handle response(json type)
+axios({
+  method: 'post',
+  url: '/base/post',
+  responseType: 'json',
+  data: {
+    a: 3,
+    b: 4
+  }
+})
+  .then(res => {
+    console.log(res)
+  })
+  .catch(err => {
+    console.log(err)
+  })
 
 // post data with headers
 axios({
