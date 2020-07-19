@@ -1,14 +1,21 @@
 import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from './types'
 import { parseHeaders } from './helpers/headers'
+import { time } from 'console'
+import { createError } from './helpers/error'
 
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise<AxiosResponse>((resolve, reject) => {
-    const { data = null, url, method = 'get', headers, responseType } = config
+    const { data = null, url, method = 'get', headers, responseType, timeout } = config
 
     const request = new XMLHttpRequest()
 
     if (responseType) {
       request.responseType = responseType
+    }
+
+    // 若没有设置 timeout，则默认为 0，即永不会超时
+    if (timeout) {
+      request.timeout = timeout
     }
 
     // Initial a HTTP request, async
@@ -29,6 +36,11 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         return
       }
 
+      // 发生超时错误和网络错误时，status = 0
+      if (request.status === 0) {
+        return
+      }
+
       const responseHeaders = parseHeaders(request.getAllResponseHeaders())
       const responseData =
         responseType && responseType === 'text' ? request.responseText : request.response
@@ -41,7 +53,15 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         request
       }
 
-      resolve(response)
+      handleResponse(response)
+    }
+
+    request.onerror = function handleError() {
+      reject(createError('Network error', config, undefined, request))
+    }
+
+    request.ontimeout = function handleTimeout() {
+      reject(createError(`Timeout of ${timeout} ms exceeded`, config, 'ECONNABORTED', request))
     }
 
     // Set up the request headers
@@ -55,5 +75,22 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
 
     // Send a HTTP request
     request.send(data)
+
+    // 处理状态码错误（非 200 状态码）
+    function handleResponse(response: AxiosResponse): void {
+      if (response.status >= 200 && response.status < 300) {
+        resolve(response)
+      } else {
+        reject(
+          createError(
+            `Request failed with status code ${response.status}`,
+            config,
+            undefined,
+            request,
+            response
+          )
+        )
+      }
+    }
   })
 }
