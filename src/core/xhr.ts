@@ -1,7 +1,6 @@
-import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from './types'
-import { parseHeaders } from './helpers/headers'
-import { time } from 'console'
-import { createError } from './helpers/error'
+import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from '../types'
+import { parseHeaders } from '../helpers/headers'
+import { createError } from '../helpers/error'
 
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise<AxiosResponse>((resolve, reject) => {
@@ -19,7 +18,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
     }
 
     // Initial a HTTP request, async
-    request.open(method.toUpperCase(), url, true)
+    request.open(method.toUpperCase(), url!, true)
 
     /**
      * @source: https://www.w3school.com.cn/ajax/ajax_xmlhttprequest_onreadystatechange.asp
