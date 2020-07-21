@@ -1,7 +1,35 @@
-import { AxiosRequestConfig, AxiosPromise, Method } from '../types'
+import {
+  AxiosRequestConfig,
+  AxiosPromise,
+  Method,
+  AxiosInterceptorManager,
+  AxiosResponse,
+  ResolvedFn,
+  RejectedFn
+} from '../types'
 import dispatchRequest from './dispatchRequest'
+import InterceptorManager from './InterceptorManager'
+
+interface Interceptors {
+  request: InterceptorManager<AxiosRequestConfig>
+  response: InterceptorManager<AxiosResponse>
+}
+
+interface PromiseChain<T> {
+  resolved: ResolvedFn<T> | ((config: AxiosRequestConfig) => AxiosPromise)
+  rejected?: RejectedFn
+}
 
 export default class Axios {
+  interceptors: Interceptors
+
+  constructor() {
+    this.interceptors = {
+      request: new InterceptorManager<AxiosRequestConfig>(),
+      response: new InterceptorManager<AxiosResponse>()
+    }
+  }
+
   // 对函数重载的实现
   request(url: any, config?: any): AxiosPromise {
     if (typeof url === 'string') {
@@ -13,7 +41,32 @@ export default class Axios {
       config = url
     }
 
-    return dispatchRequest(config)
+    // init value is the send request
+    const chain: PromiseChain<any>[] = [
+      {
+        resolved: dispatchRequest,
+        rejected: undefined
+      }
+    ]
+
+    // add request interceptors to the front of the chain
+    this.interceptors.request.forEach(interceptor => {
+      chain.unshift(interceptor)
+    })
+
+    // add response interceptors to the end of the chain
+    this.interceptors.response.forEach(interceptor => {
+      chain.push(interceptor)
+    })
+
+    let promise = Promise.resolve(config)
+
+    while (chain.length) {
+      const { resolved, rejected } = chain.shift()!
+      promise = promise.then(resolved, rejected)
+    }
+
+    return promise
   }
 
   get(url: string, config?: AxiosRequestConfig): AxiosPromise {
