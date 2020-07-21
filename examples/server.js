@@ -124,7 +124,6 @@ function registerExtendRouter() {
     res.json(req.body)
   })
 
-  // custom response data
   router.get('/extend/user', function(req, res) {
     res.json({
       code: 0,

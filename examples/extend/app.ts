@@ -42,7 +42,7 @@ axios.patch('/extend/patch', {
   msg: 'patch'
 })
 
-// test custom response data
+// test customize response data
 interface ResponseData<T> {
   code: number
   result: T
