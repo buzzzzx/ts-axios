@@ -4,7 +4,7 @@ import { createError } from '../helpers/error'
 
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise<AxiosResponse>((resolve, reject) => {
-    const { data = null, url, method = 'get', headers, responseType, timeout } = config
+    const { data = null, url, method = 'get', headers, responseType, timeout, cancelToken } = config
 
     const request = new XMLHttpRequest()
 
@@ -15,6 +15,13 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
     // 若没有设置 timeout，则默认为 0，即永不会超时
     if (timeout) {
       request.timeout = timeout
+    }
+
+    if (cancelToken) {
+      cancelToken.promise.then(reason => {
+        request.abort()
+        reject(reason)
+      })
     }
 
     // Initial a HTTP request, async

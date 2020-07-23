@@ -4,6 +4,7 @@ const webpack = require('webpack')
 const webpackDevMiddleware = require('webpack-dev-middleware')
 const webpackHotMiddleware = require('webpack-hot-middleware')
 const WebpackConfig = require('./webpack.config')
+const { set } = require('shelljs')
 
 const app = express()
 const compiler = webpack(WebpackConfig)
@@ -38,6 +39,8 @@ registerExtendRouter()
 regiserInterceptorRouter()
 
 registerConfigRouter()
+
+registerCancelRouter()
 
 app.use(router)
 const port = process.env.PORT || 8080
@@ -151,5 +154,21 @@ function registerConfigRouter() {
     res.json({
       msg: 'hello'
     })
+  })
+}
+
+function registerCancelRouter() {
+  router.get('/cancel/get', function(req, res) {
+    setTimeout(() => {
+      res.json({
+        msg: 'hey'
+      })
+    }, 1000)
+  })
+
+  router.post('/cancel/post', function(req, res) {
+    setTimeout(() => {
+      res.json(req.body)
+    }, 1000)
   })
 }
