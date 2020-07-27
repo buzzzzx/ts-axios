@@ -25,7 +25,11 @@ const defaults: AxiosRequestConfig = {
 
   // xsrf settings
   xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN'
+  xsrfHeaderName: 'X-XSRF-TOKEN',
+
+  validateStatus(status: number): boolean {
+    return status >= 200 && status < 300
+  }
 }
 
 const methodsWithoutData = ['get', 'delete', 'head', 'options']
