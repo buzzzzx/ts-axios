@@ -46,6 +46,7 @@ export default class Axios {
     }
 
     config = mergeConfig(this.defaults, config)
+    config.method = config.method.toLowerCase()
 
     // init value is the send request
     const chain: PromiseChain<any>[] = [

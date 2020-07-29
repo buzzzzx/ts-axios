@@ -91,7 +91,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
       }
 
       request.onerror = function handleError() {
-        reject(createError('Network error', config, undefined, request))
+        reject(createError('Network Error', config, undefined, request))
       }
 
       request.ontimeout = function handleTimeout() {
