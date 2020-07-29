@@ -18,10 +18,13 @@ function deepMergeStrat(val1: any, val2: any): any {
   if (isPlainObject(val2)) {
     return deepMerge(val1, val2)
   } else if (typeof val2 !== 'undefined') {
+    // val2 is not PlainObject but other type except empty
     return val2
   } else if (isPlainObject(val1)) {
+    // val2 is empty and val1 is PlainObject
     return deepMerge(val1)
-  } else if (typeof val1 !== 'undefined') {
+  } else {
+    // val2 is empty and val1 is not PlainObject
     return val1
   }
 }
