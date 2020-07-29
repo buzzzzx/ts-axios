@@ -19,49 +19,77 @@ describe('requests', () => {
     })
   })
 
-  test('should treat method value as lowercase string', done => {
+  test('should treat method value as lowercase string', () => {
     axios({
       url: '/foo',
       method: 'POST'
     }).then(response => {
       expect(response.config.method).toBe('post')
-      done()
     })
 
-    getAjaxRequest().then(request => {
+    return getAjaxRequest().then(request => {
       request.respondWith({
         status: 200
       })
     })
   })
 
+  // test('should reject on network errors', () => {
+  //   const resolveSpy = jest.fn((res: AxiosResponse) => {
+  //     return res
+  //   })
+
+  //   const rejectSpy = jest.fn((e: AxiosError) => {
+  //     return e
+  //   })
+
+  //   jasmine.Ajax.uninstall()
+
+  //   return axios('/foo')
+  //     .then(resolveSpy)
+  //     .catch(rejectSpy)
+  //     .then(next)
+
+  //   function next(reason: AxiosResponse | AxiosError) {
+  //     expect(resolveSpy).not.toHaveBeenCalled()
+  //     expect(rejectSpy).toHaveBeenCalled()
+  //     expect(reason instanceof Error).toBeTruthy()
+  //     expect((reason as AxiosError).message).toBe('Network Error')
+  //     expect(reason.request).toEqual(expect.any(XMLHttpRequest))
+
+  //     jasmine.Ajax.install()
+  //   }
+  // })
+
   test('should reject on network errors', done => {
+    let err: AxiosError
+
     const resolveSpy = jest.fn((res: AxiosResponse) => {
       return res
     })
 
     const rejectSpy = jest.fn((e: AxiosError) => {
-      return e
+      err = e
     })
-
-    jasmine.Ajax.uninstall()
 
     axios('/foo')
       .then(resolveSpy)
       .catch(rejectSpy)
-      .then(next)
 
-    function next(reason: AxiosResponse | AxiosError) {
-      expect(resolveSpy).not.toHaveBeenCalled()
-      expect(rejectSpy).toHaveBeenCalled()
-      expect(reason instanceof Error).toBeTruthy()
-      // expect((reason as AxiosError).message).toBe('Network Error')
-      expect(reason.request).toEqual(expect.any(XMLHttpRequest))
+    getAjaxRequest().then(request => {
+      // @ts-ignore
+      request.eventBus.trigger('error')
 
-      jasmine.Ajax.install()
+      setTimeout(() => {
+        expect(resolveSpy).not.toHaveBeenCalled()
+        expect(rejectSpy).toHaveBeenCalled()
+        expect(err instanceof Error).toBeTruthy()
+        expect((err as AxiosError).message).toBe('Network Error')
+        expect(err.request).toEqual(expect.any(XMLHttpRequest))
 
-      done()
-    }
+        done()
+      }, 100)
+    })
   })
 
   test('should reject when request timeout', done => {
@@ -86,7 +114,7 @@ describe('requests', () => {
     })
   })
 
-  test('should reject when validateStatus returns false', done => {
+  test('should reject when validateStatus returns false', () => {
     const resolveSpy = jest.fn((res: AxiosResponse) => {
       return res
     })
@@ -104,7 +132,7 @@ describe('requests', () => {
       .catch(rejectSpy)
       .then(next)
 
-    getAjaxRequest().then(request => {
+    return getAjaxRequest().then(request => {
       request.respondWith({
         status: 500
       })
@@ -116,12 +144,10 @@ describe('requests', () => {
       expect(reason instanceof Error).toBeTruthy()
       expect((reason as AxiosError).message).toBe('Request failed with status code 500')
       expect((reason as AxiosError).response!.status).toBe(500)
-
-      done()
     }
   })
 
-  test('should resolve when validateStatus returns true', done => {
+  test('should resolve when validateStatus returns true', () => {
     const resolveSpy = jest.fn((res: AxiosResponse) => {
       return res
     })
@@ -139,7 +165,7 @@ describe('requests', () => {
       .catch(rejectSpy)
       .then(next)
 
-    getAjaxRequest().then(request => {
+    return getAjaxRequest().then(request => {
       request.respondWith({
         status: 500
       })
@@ -149,8 +175,6 @@ describe('requests', () => {
       expect(resolveSpy).toHaveBeenCalled()
       expect(rejectSpy).not.toHaveBeenCalled()
       expect(res.config.url).toBe('/foo')
-
-      done()
     }
   })
 
@@ -174,11 +198,11 @@ describe('requests', () => {
       request.respondWith({
         status: 200,
         statusText: 'OK',
-        responseText: '{"a": 1}'
+        responseText: '{"errno": 0}'
       })
 
       setTimeout(() => {
-        expect(response.data).toEqual({ a: 1 })
+        expect(response.data).toEqual({ errno: 0 })
         done()
       }, 100)
     })
@@ -262,6 +286,38 @@ describe('requests', () => {
 
     return getAjaxRequest().then(request => {
       expect(request.requestHeaders['Content-Type']).toBe('application/json')
+    })
+  })
+
+  test('should support array buffer response', done => {
+    let response: AxiosResponse
+
+    function str2ab(str: string) {
+      const buff = new ArrayBuffer(str.length * 2)
+      const view = new Uint16Array(buff)
+      for (let i = 0; i < str.length; i++) {
+        view[i] = str.charCodeAt(i)
+      }
+      return buff
+    }
+
+    axios('/foo', {
+      responseType: 'arraybuffer'
+    }).then(data => {
+      response = data
+    })
+
+    getAjaxRequest().then(request => {
+      request.respondWith({
+        status: 200,
+        // @ts-ignore
+        response: str2ab('Hello world')
+      })
+
+      setTimeout(() => {
+        expect(response.data.byteLength).toBe(22)
+        done()
+      }, 100)
     })
   })
 })

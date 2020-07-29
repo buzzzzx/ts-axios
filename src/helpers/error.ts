@@ -7,6 +7,7 @@ class AxiosError extends Error {
   response?: AxiosResponse
   isAxiosError: boolean
 
+  /* istanbul ignore next */
   constructor(
     message: string,
     config: AxiosRequestConfig,
