@@ -7,6 +7,7 @@ describe('helpers::headers', () => {
         'conTenT-Type': 'foo/bar',
         'Content-length': 1024
       }
+
       processHeaders(headers, {})
 
       expect(headers['Content-Type']).toBe('foo/bar')
