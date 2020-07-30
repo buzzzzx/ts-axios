@@ -1,5 +1,4 @@
 import { processHeaders, parseHeaders, flattenHeaders } from '../../src/helpers/headers'
-import { head } from 'shelljs'
 
 describe('helpers::headers', () => {
   describe('processHeaders', () => {
